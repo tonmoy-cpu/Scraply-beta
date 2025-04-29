@@ -170,7 +170,7 @@ const HeroSection: React.FC = () => {
 
         {/* Chat with Gemini Button */}
         <button
-          className="aiChat fixed bottom-10 right-7 bg-go-green text-white rounded-full p-4 shadow-md cursor-pointer z-50 hover:bg-blue-700 transition-colors"
+          className="aiChat fixed bottom-10 right-7 bg-go-green text-white rounded-full p-4 shadow-md cursor-pointer z-50 hover:bg-cyan-400 transition-colors"
           onClick={() => setIsChatOpen(!isChatOpen)}
           aria-label="Open chat with Gemini"
         >

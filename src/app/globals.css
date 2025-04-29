@@ -485,12 +485,13 @@ body {
 .aiChat {
   bottom: 10rem;
   right: 20px;
-  background-color: var(--go-green);
+  background-color: white;
+  border: #07aecb 1px solid;
   color: var(--white);
   border-radius: 50%;
   padding: 20px;
   font-size: 14px;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-2);
   cursor: pointer;
 }
 
