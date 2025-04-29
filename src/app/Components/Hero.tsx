@@ -180,7 +180,7 @@ const HeroSection: React.FC = () => {
           <ChatErrorBoundary>
             <div
               ref={chatBoxRef}
-              className="fixed bottom-24 right-5 w-80 bg-white rounded-md shadow-md z-50 flex flex-col"
+              className="fixed bottom-24 right-5 w-90 bg-white rounded-md shadow-md z-50 flex flex-col"
               style={{ border: "2px solid var(--go-green)", maxHeight: "400px" }}
             >
               {/* Chat Header */}
