@@ -9,6 +9,7 @@ import { play } from "ionicons/icons";
 import animationData from "../../assets/animation.json";
 import Lottie from "lottie-react";
 import axios from "axios";
+import logo from "../../assets/gemini-color.png";
 
 const solutions = [
   "Recycling Solution",
@@ -169,45 +170,67 @@ const HeroSection: React.FC = () => {
 
         {/* Chat with Gemini Button */}
         <button
-          className="aiChat fixed bottom-10 right-5 bg-go-green text-white rounded-md px-5 py-3 text-sm font-semibold shadow-md cursor-pointer z-50"
+          className="aiChat fixed bottom-10 right-7 bg-go-green text-white rounded-full p-4 shadow-md cursor-pointer z-50 hover:bg-blue-700 transition-colors"
           onClick={() => setIsChatOpen(!isChatOpen)}
+          aria-label="Open chat with Gemini"
         >
-          Chat with Gemini
+          <Image
+            src={logo}
+            alt="Chat with Gemini"
+            width={50}
+            height={50}
+            className="w-10 h-10"
+            unoptimized
+          />
         </button>
 
         {/* Chatbox Dropdown */}
         {isChatOpen && (
           <ChatErrorBoundary>
-            <div
+            <motion.div
               ref={chatBoxRef}
-              className="fixed bottom-24 right-5 w-90 bg-white rounded-md shadow-md z-50 flex flex-col"
-              style={{ border: "2px solid var(--go-green)", maxHeight: "400px" }}
+              className="fixed bottom-60 right-5 w-[90vw] max-w-[400px] sm:w-[400px] bg-white rounded-xl shadow-lg z-50 flex flex-col max-h-[70vh] sm:max-h-[500px]"
+              style={{ border: "2px solid var(--go-green)" }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              aria-label="Chat with Gemini dialog"
             >
               {/* Chat Header */}
-              <div
-                className="bg-go-green text-white p-3 rounded-t-md flex justify-between items-center"
-              >
-                <h3 className="text-sm font-semibold">Chat with Gemini</h3>
+              <div className="bg-gradient-to-r from-go-green to-blue-600 text-white p-3 rounded-t-xl flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Image
+                    src={logo}
+                    alt="Gemini logo"
+                    width={40}
+                    height={40}
+                    className="w-8 h-8"
+                    unoptimized
+                  />
+                  <h3 className="text-sm font-semibold">Chat with Gemini</h3>
+                </div>
                 <button
                   onClick={() => setIsChatOpen(false)}
-                  className="text-white hover:text-gray-200"
+                  className="text-black hover:text-gray-200 text-lg"
+                  aria-label="Close chat"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Chat Messages */}
-              <div className="flex-1 p-3 overflow-y-auto bg-gray-100">
+              <div className="flex-1 p-4 overflow-y-auto bg-gray-50 rounded-lg">
                 {messages.length === 0 ? (
-                  <p className="text-gray-500 text-sm">Start chatting...</p>
+                  <p className="text-gray-500 text-sm text-center">Start chatting...</p>
                 ) : (
                   messages.map((msg, index) => (
                     <div
                       key={index}
-                      className={`mb-2 p-2 rounded-md text-sm ${
+                      className={`mb-3 p-3 rounded-lg text-sm max-w-[85%] shadow-sm ${
                         msg.role === "user"
-                          ? "bg-go-green text-white ml-auto max-w-[80%]"
-                          : "bg-white text-gray-800 border border-gray-200 max-w-[80%]"
+                          ? "bg-blue-500 text-white ml-auto"
+                          : "bg-white text-gray-800 border border-gray-200 mr-auto"
                       }`}
                     >
                       {msg.content}
@@ -215,32 +238,34 @@ const HeroSection: React.FC = () => {
                   ))
                 )}
                 {isLoading && (
-                  <div className="text-gray-500 text-sm">Typing...</div>
+                  <div className="text-gray-500 text-sm text-center">Typing...</div>
                 )}
               </div>
 
               {/* Input Area */}
-              <div className="p-3 border-t border-gray-200">
-                <div className="flex items-center">
+              <div className="p-4 border-t border-gray-200 bg-white rounded-b-xl">
+                <div className="flex items-center gap-2">
                   <input
                     type="text"
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Ask something..."
-                    className="flex-1 p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-go-green"
+                    className="flex-1 p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-go-green disabled:opacity-50"
                     disabled={isLoading}
+                    aria-label="Chat input"
                   />
                   <button
                     onClick={handleSendMessage}
-                    className="ml-2 bg-go-green text-white p-2 rounded-md text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
+                    className="bg-blue-700 text-white p-2 rounded-lg text-sm font-semibold hover:bg-blue-300 disabled:opacity-50 transition-colors"
                     disabled={isLoading}
+                    aria-label="Send message"
                   >
                     Send
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </ChatErrorBoundary>
         )}
       </div>
