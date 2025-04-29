@@ -1,3 +1,5 @@
+"use client";
+
 import { facility } from "@/app/data/facility";
 import {
   getEmail,
@@ -51,16 +53,30 @@ const Smartphone: React.FC = () => {
   const [bookingData, setBookingData] = useState<BookingData[]>([]);
   const [facilityData, setFacilityData] = useState<Facility[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingFacilities, setIsFetchingFacilities] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/v1/facility")
-      .then((response) => response.json())
-      .then((data) => {
-        setFacilityData(data);
-      })
-      .catch((error) => {
+    const fetchFacilities = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/v1/facility");
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Facility data from API:", data);
+        setFacilityData(Array.isArray(data) ? data : []);
+      } catch (error) {
         console.error("Error fetching facilities:", error);
-      });
+        setApiError(error.message || "Failed to load facilities.");
+        toast.error("Failed to load facilities. Using fallback data.", {
+          autoClose: 3000,
+        });
+      } finally {
+        setIsFetchingFacilities(false);
+      }
+    };
+    fetchFacilities();
   }, []);
 
   const handleBrandChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -68,7 +84,7 @@ const Smartphone: React.FC = () => {
     setSelectedBrand(brand);
     setSelectedModel("");
     setSelectedFacility("");
-  
+
     if (brand) {
       const selectedBrand = brands.find((b) => b.brand === brand);
       if (selectedBrand) {
@@ -167,22 +183,41 @@ const Smartphone: React.FC = () => {
       ];
 
       setBrands(brandsData);
-      setModels(models);
+      setModels([]);
     };
     fetchBrandsAndModels();
-  }, [models]);
+  }, []);
 
   const email = getEmail();
   const userId = getUserID();
   const phone = getPhoneNumber();
   const fullname = getfullname();
 
- const handleSubmit = async () => {
-  const recycleItem = selectedBrand + selectedModel;
+  const effectiveFacilities = facilityData.length > 0 ? facilityData : facility;
 
-  if (isAuthenticated() && facilityData.length > 0) {
+  const handleSubmit = async () => {
+    console.log("isAuthenticated:", isAuthenticated());
+    console.log("effectiveFacilities length:", effectiveFacilities.length);
+    console.log("User data:", { email, userId, phone, fullname });
+
+    const recycleItem = selectedBrand + " " + selectedModel;
+
+    if (!isAuthenticated()) {
+      toast.error("Please login to book a facility.", {
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    if (effectiveFacilities.length === 0) {
+      toast.error("No facilities available. Please try again later.", {
+        autoClose: 3000,
+      });
+      return;
+    }
+
     if (
-      recycleItem &&
+      recycleItem.trim() &&
       selectedFacility &&
       recycleItemPrice &&
       pickupDate &&
@@ -190,11 +225,9 @@ const Smartphone: React.FC = () => {
       fullname &&
       phone &&
       address &&
-      fullname &&
       email &&
       userId
     ) {
-
       const newBooking: BookingData = {
         userId: userId,
         userEmail: email,
@@ -209,7 +242,7 @@ const Smartphone: React.FC = () => {
       };
 
       setBookingData([...bookingData, newBooking]);
-      setIsLoading(true)
+      setIsLoading(true);
 
       try {
         const response = await fetch("http://localhost:5000/api/v1/booking", {
@@ -231,42 +264,62 @@ const Smartphone: React.FC = () => {
           setPickupDate("");
           setPickupTime("");
           setAddress("");
-          setIsLoading(false)
-
         } else {
-          toast.error("Error submitting data.", {
+          const errorData = await response.json();
+          toast.error(`Error submitting data: ${errorData.message || response.statusText}`, {
             autoClose: 3000,
           });
         }
       } catch (error) {
-        console.error("Error:", error);
-        toast.error("Error submitting data.", {
+        console.error("Error submitting booking:", error);
+        toast.error("Error submitting data. Please try again.", {
           autoClose: 3000,
         });
-      }
-      finally {
+      } finally {
         setIsLoading(false);
-    }
+      }
     } else {
       toast.error("Please fill in all the required fields.", {
         autoClose: 3000,
       });
     }
-  } else {
-    toast.error("Please Login to book a facility", {
-      autoClose: 3000,
-    });
-  }
-};
+  };
 
-if (isLoading) {
-  return (
-    <div className="loader-container">
-      <div className="loader" />
-      <div className="loading-text">Submitting...</div>
-    </div>
-  );
-}
+  if (isLoading) {
+    return (
+      <div className="loader-container">
+        <div className="loader" />
+        <div className="loading-text">Submitting...</div>
+      </div>
+    );
+  }
+
+  if (isFetchingFacilities) {
+    return (
+      <div className="loader-container">
+        <div className="loader" />
+        <div className="loading-text">Loading facilities...</div>
+      </div>
+    );
+  }
+
+  if (effectiveFacilities.length === 0 && apiError) {
+    return (
+      <div className="container mx-auto p-8 text-center">
+        <h1 className="text-4xl font-bold mb-6">Smartphone Recycling</h1>
+        <p className="text-xl text-red-600">
+          {apiError}. Please try again later or contact support.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 bg-emerald-700 text-white px-4 py-2 rounded-md"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const currentDate = new Date().toISOString().split("T")[0];
 
   return (
@@ -276,6 +329,11 @@ if (isLoading) {
       <h1 className="text-4xl font-bold mb-6 p-6 text-center">
         Smartphone Recycling
       </h1>
+      {apiError && (
+        <p className="text-red-600 text-center mb-4">
+          Using fallback facility data due to API error: {apiError}
+        </p>
+      )}
       <form
         className="grid grid-cols-1 md:grid-cols-2 mx-8 md:mx-0 gap-4 justify-center"
         onSubmit={(e) => {
@@ -422,9 +480,9 @@ if (isLoading) {
             className="w-full p-2 sign-field rounded-md placeholder:font-light placeholder:text-gray-500"
           >
             <option value="">Select Facility</option>
-            {facility.map((facility) => (
-              <option key={facility.name} value={facility.name}>
-                {facility.name}
+            {effectiveFacilities.map((fac) => (
+              <option key={fac.name} value={fac.name}>
+                {fac.name}
               </option>
             ))}
           </select>

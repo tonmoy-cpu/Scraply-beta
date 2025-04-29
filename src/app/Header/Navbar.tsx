@@ -125,6 +125,7 @@ const user = getUser();
             <NavItem label="Rules" />
           </ul>
         </nav>
+        <button className="aiChat">Chat with gemini</button>
 
         <h1 className='font-montserrat font-bold text-xl ml-12 md:ml-4 md:text-2xl text-sky-600 flex items-center gap-[1vh]'>
           <IonIcon icon={location} aria-hidden="true" role="img"></IonIcon>
